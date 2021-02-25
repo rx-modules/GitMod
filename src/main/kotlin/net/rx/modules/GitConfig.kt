@@ -3,28 +3,69 @@ package net.rx.modules
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.io.File
-import java.util.*
 import kotlinx.serialization.json.Json
-import net.minecraft.server.network.ServerPlayerEntity
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+import net.minecraft.server.MinecraftServer
+import net.minecraft.util.WorldSavePath
+import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * Manages data concerning [config][config]
  */
-object GitConfig : ConfigManager() {
-    override val dataSpec = Config::class
+object GitConfig {
+    const val name = "config.json"
 
-    override val fileExtension: String = "json"
+    private var registered: Boolean = false
 
-    override val enableSaveOnShutDown: Boolean = true
+    private lateinit var dataDir: Path
 
-    override val enableLoadAllOnStart: Boolean = false
+    lateinit var config: Config
 
+    fun register(server: MinecraftServer) {
+        if (!registered) initialize(server)
 
-    override fun readFromFile(dataString: String): Config {
-        return Json.decodeFromString(Json { prettyPrint = true}.encodeToString(Config.serializer() as Config))
+        ServerLifecycleEvents.SERVER_STARTING.register {
+            initialize(it)
+        }
+
+        ServerLifecycleEvents.SERVER_STOPPING.register {
+
+        }
+
+        registered = true
     }
 
-    override fun writeToFile(dataFile: File, data: Config) {
+    private fun initialize(server: MinecraftServer) {
+        // Sets data directory to the correct
+        // folder within the Fabric Zones
+        // directory
+        dataDir = server
+            .runDirectory.toPath()
+            .resolve("config")
+            .resolve("gitmod")
+
+        Files.createDirectories(dataDir)
+
+        loadAllData(server)
+    }
+
+    private fun loadAllData(server: MinecraftServer) {
+        config = readFromFile(dataDir.toString())
+
+        // fix data
+        if (config.gitPath.isNullOrBlank()) {
+            config.gitPath = server
+                .getSavePath(WorldSavePath.DATAPACKS).toString()
+        }
+    }
+
+
+    private fun readFromFile(dataString: String): Config {
+        return Json.decodeFromString(Config.serializer(), dataString)
+    }
+
+    private fun writeToFile(dataFile: File, data: Config) {
         dataFile.writeText(Json{ prettyPrint = true }.encodeToString(Config.serializer(), data))
     }
 
@@ -35,8 +76,8 @@ object GitConfig : ConfigManager() {
      */
     fun getOnlineOperators(): Set<String> {
         println("getting online ops yooo")
-        println(cache["gitmod"]?.operators?.keys)
-        return cache["gitmod"]?.operators?.keys ?: emptySet<String>()
+        println(config.operators)
+        return config.operators.keys
     }
 
     /**
@@ -44,7 +85,7 @@ object GitConfig : ConfigManager() {
      *
      * @return Path to git repo
      */
-    fun getGitPath(): String? {
-        return cache["gitmod"]?.gitPath
+    fun getGitPath(): String {
+        return config.gitPath
     }
 }

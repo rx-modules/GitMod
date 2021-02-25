@@ -14,7 +14,7 @@ import net.rx.modules.GitConfig
 
 // For support join https://discord.gg/v6v4pMv
 
-class GitModKT : DedicatedServerModInitializer {
+class GitMod : DedicatedServerModInitializer {
     fun init() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
         // However, some things (like resources) may still be uninitialized.

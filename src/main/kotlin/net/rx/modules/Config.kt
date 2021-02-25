@@ -18,7 +18,7 @@ data class Config(
     val id: String = "gitmod",
 
     // path to repo
-    val gitPath: String = "",
+    var gitPath: String = "",
 
     // operators to handle, UUID: name
     val operators: MutableMap<String, String> = mutableMapOf()

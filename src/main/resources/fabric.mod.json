@@ -19,7 +19,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.rx.modules.GitModKT::init"
+      "net.rx.modules.GitMod::init"
     ]
   },
   "mixins": [
