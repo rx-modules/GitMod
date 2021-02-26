@@ -14,12 +14,13 @@ import net.minecraft.text.LiteralText
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import net.rx.modules.ArgumentTokenizer.tokenize
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 fun red(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.RED))
 fun green(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.GREEN))
-fun dark_gray(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY))
+fun gray(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.GRAY))
 
 class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?>) {
 
@@ -55,7 +56,7 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
     private fun reloadCommand(context: CommandContext<ServerCommandSource>): Int {
         GitConfig.reloadData()
         context.source.sendFeedback(
-            dark_gray("Successfully reloaded GitConfig"), true)
+            gray("Successfully reloaded GitConfig"), true)
         return 1
     }
 
@@ -73,10 +74,10 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
         }
 
         val path = GitConfig.getGitPath()
-        var cmd = "git -C $path $args"
+        var cmd = "git -C \"$path\" $args"
 
         context.source.sendFeedback(
-            dark_gray("executing: $cmd"), true)
+            gray("executing: $cmd"), true)
 
         GlobalScope.launch(Dispatchers.IO) {
             executor = context.source.player.entityName
@@ -90,7 +91,7 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
     }
 
     private fun runGit(cmd: String, source: ServerCommandSource) {
-        val argv = cmd.split(" ").toTypedArray()
+        val argv = tokenize(cmd).toTypedArray()
 
         try {
             val proc = ProcessBuilder(*argv)
