@@ -93,7 +93,16 @@ object GitConfig {
 
 
     private fun readFromFile(dataFile: File): Config {
-        return Json.decodeFromString(Config.serializer(), dataFile.readText())
+        return try {
+            Json.decodeFromString(Config.serializer(), dataFile.readText())
+        } catch (e : Throwable) {
+            println("[GitMod] Invalid JSON. Replacing with default")
+            config = Config()
+            fixGitPath()
+            writeToFile(dataFile, config)
+
+            config
+        }
     }
 
     private fun writeToFile(dataFile: File, data: Config) {

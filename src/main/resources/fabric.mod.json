@@ -28,11 +28,11 @@
   "depends": {
     "fabricloader": ">=0.8.7",
     "fabric": "*",
-    "fabric-language-kotlin": "*",
+    "fabric-language-kotlin": ">=1.4.30",
     "minecraft": "1.16.x"
   },
   "requires": {
-    "fabric-language-kotlin": "*"
+    "fabric-language-kotlin": ">=1.4.30"
   },
   "suggests": {
     "flamingo": "*"
