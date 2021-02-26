@@ -1,14 +1,14 @@
 package net.rx.modules
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import java.io.File
 import kotlinx.serialization.json.Json
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.WorldSavePath
+import net.rx.modules.GitConfig.config
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+
 
 /**
  * Manages data concerning [config][config]
@@ -51,21 +51,24 @@ object GitConfig {
         dataPath = dir.resolve("gitmod.json")
         with(dataPath.toFile()) {
             if (!this.exists()) initData(this)
+            else loadAllData()
         }
-
-
-        loadAllData()
     }
 
-    private fun initData(dataFile : File) {
-        dataFile.writeText(
-            """
-                {
-                  "gitPath": "",
-                  "operators": {}
-                }
-            """.trimIndent()
-        )
+    private fun initData(dataFile: File) {
+        println("[GitMod] Creating Config File")
+        dataFile.writeText("")
+
+        config = Config()
+        fixGitPath()
+        writeToFile(dataFile, config)
+    }
+
+    fun reloadData() {
+        with(dataPath.toFile()) {
+            if (!this.exists()) initData(this)
+            else loadAllData()
+        }
     }
 
 
@@ -74,11 +77,14 @@ object GitConfig {
         // println(dataPath.toAbsolutePath().toString())
         config = readFromFile(dataPath.toFile())
 
-        print("[GitMod] Operators: ")
-        config.operators.keys.forEach { key -> print(key) }
+        println("[GitMod] Operators: ")
+        config.operators.keys.forEach { key -> println("[GitMod] $key") }
         println()
 
-        // fix data
+        fixGitPath()
+    }
+
+    private fun fixGitPath() {
         if (config.gitPath.isNullOrBlank()) {
             config.gitPath = server
                 .getSavePath(WorldSavePath.DATAPACKS).toString()
@@ -91,7 +97,7 @@ object GitConfig {
     }
 
     private fun writeToFile(dataFile: File, data: Config) {
-        dataFile.writeText(Json{ prettyPrint = true }.encodeToString(Config.serializer(), data))
+        dataFile.writeText(Json { prettyPrint = true }.encodeToString(Config.serializer(), data))
     }
 
     /**

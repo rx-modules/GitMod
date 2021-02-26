@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
 
 fun red(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.RED))
 fun green(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.GREEN))
+fun dark_gray(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY))
 
 class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?>) {
 
@@ -30,7 +31,7 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
         dispatcher.register(
             literal("git")
                 .requires ( ::checkOperatorPermission )
-                .executes ( ::invalidCommand )
+                .executes { invalidCommand(it, "Invalid invocation. Try /git status") }
                 .then(
                     argument("args", StringArgumentType.greedyString())
                         .executes { gitCommand(it, StringArgumentType.getString(it, "args")) }
@@ -38,9 +39,12 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
         )
 
         dispatcher.register(
-            literal("gitreload")
-                .requires ( ::checkOperatorPermission )
-                .executes ( ::reloadCommand )
+            literal("gitconfig")
+                .requires { it.hasPermissionLevel(4) }
+                .executes { invalidCommand(it, "Invalid invocation. Try /gitconfig reload") }
+                .then(
+                    literal("reload").executes(::reloadCommand)
+                )
         )
     }
 
@@ -49,15 +53,15 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
     }
 
     private fun reloadCommand(context: CommandContext<ServerCommandSource>): Int {
-        GitConfig.loadAllData()
+        GitConfig.reloadData()
         context.source.sendFeedback(
-            LiteralText("Successfully reloaded GitConfig"), true)
+            dark_gray("Successfully reloaded GitConfig"), true)
         return 1
     }
 
-    private fun invalidCommand(context: CommandContext<ServerCommandSource>): Int {
+    private fun invalidCommand(context: CommandContext<ServerCommandSource>, msg: String): Int {
         context.source.sendFeedback(
-            red("Invalid use of git command. Requires arguments."), false)
+            red(msg), false)
         return 0
     }
 
@@ -72,20 +76,20 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
         var cmd = "git -C $path $args"
 
         context.source.sendFeedback(
-            LiteralText("executing: $cmd"), true)
+            dark_gray("executing: $cmd"), true)
 
         GlobalScope.launch(Dispatchers.IO) {
             executor = context.source.player.entityName
             command = cmd
             executing = true
 
-            runGit(cmd, context.source.player)
+            runGit(cmd, context.source)
         }
 
-        return 1
+        return 0
     }
 
-    private fun runGit(cmd: String, player: ServerPlayerEntity) {
+    private fun runGit(cmd: String, source: ServerCommandSource) {
         val argv = cmd.split(" ").toTypedArray()
 
         try {
@@ -95,16 +99,28 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
                 .start()
 
             proc.waitFor(60, TimeUnit.SECONDS)
-            val stdout = proc.inputStream.bufferedReader().readText()
-            val stderr = proc.errorStream.bufferedReader().readText()
-            player.sendMessage(
-                green(stdout), false)
-            player.sendMessage(
-                red(stderr), false)
+            val stdout = proc.inputStream.bufferedReader().readText().trim()
+            val stderr = proc.errorStream.bufferedReader().readText().trim()
+
+            if (stdout.isNullOrBlank()) {
+                source.sendFeedback(
+                    green(stdout), false)
+            }
+
+            if (!stderr.isNullOrBlank()) {
+                source.sendFeedback(
+                    red(stderr), false)
+            }
+
+            if (stdout.isNullOrBlank() && stderr.isNullOrBlank()) {
+                source.sendFeedback(
+                    green("GitCmd successfully executed (no output)"), false)
+            }
+
         } catch(e: IOException) {
             e.printStackTrace()
-            player.sendMessage(
-                red("git exception in code: $e"), false)
+            source.sendFeedback(
+                red("git exception in code: $e"), true)
         }
 
         executor = null
