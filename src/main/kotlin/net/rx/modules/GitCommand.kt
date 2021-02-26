@@ -3,14 +3,17 @@ package net.rx.modules
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
-import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -18,17 +21,38 @@ fun red(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withCol
 fun green(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.GREEN))
 
 class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?>) {
+
+    var executing: Boolean = false
+    var executor: String? = null
+    var command: String? = null
+
     fun register() {
         dispatcher.register(
             literal("git")
-                //.requires { it.hasPermissionLevel(4)}
-                .requires { GitConfig.getOnlineOperators()!!.contains(it.toString()) }
+                .requires ( ::checkOperatorPermission )
                 .executes ( ::invalidCommand )
                 .then(
                     argument("args", StringArgumentType.greedyString())
                         .executes { gitCommand(it, StringArgumentType.getString(it, "args")) }
                 )
         )
+
+        dispatcher.register(
+            literal("gitreload")
+                .requires ( ::checkOperatorPermission )
+                .executes ( ::reloadCommand )
+        )
+    }
+
+    private fun checkOperatorPermission(context: ServerCommandSource): Boolean {
+        return GitConfig.getOnlineOperators().contains(context.player.uuidAsString)
+    }
+
+    private fun reloadCommand(context: CommandContext<ServerCommandSource>): Int {
+        GitConfig.loadAllData()
+        context.source.sendFeedback(
+            LiteralText("Successfully reloaded GitConfig"), true)
+        return 1
     }
 
     private fun invalidCommand(context: CommandContext<ServerCommandSource>): Int {
@@ -38,8 +62,31 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
     }
 
     private fun gitCommand(context: CommandContext<ServerCommandSource>, args: String): Int {
+        if (executing) {
+            context.source.sendFeedback(
+                red("$executor is current running $command. Please wait.."), true)
+            return 0
+        }
+
         val path = GitConfig.getGitPath()
-        val argv = "git -C $path $args".split(" ").toTypedArray()
+        var cmd = "git -C $path $args"
+
+        context.source.sendFeedback(
+            LiteralText("executing: $cmd"), true)
+
+        GlobalScope.launch(Dispatchers.IO) {
+            executor = context.source.player.entityName
+            command = cmd
+            executing = true
+
+            runGit(cmd, context.source.player)
+        }
+
+        return 1
+    }
+
+    private fun runGit(cmd: String, player: ServerPlayerEntity) {
+        val argv = cmd.split(" ").toTypedArray()
 
         try {
             val proc = ProcessBuilder(*argv)
@@ -50,18 +97,19 @@ class HomeCommand(private val dispatcher: CommandDispatcher<ServerCommandSource?
             proc.waitFor(60, TimeUnit.SECONDS)
             val stdout = proc.inputStream.bufferedReader().readText()
             val stderr = proc.errorStream.bufferedReader().readText()
-            context.source.sendFeedback(
-                green(stdout), true)
-            context.source.sendFeedback(
-                red(stderr), true)
+            player.sendMessage(
+                green(stdout), false)
+            player.sendMessage(
+                red(stderr), false)
         } catch(e: IOException) {
             e.printStackTrace()
-            context.source.sendFeedback(
-                red("git exception in code: $e"), true)
-            return 0
+            player.sendMessage(
+                red("git exception in code: $e"), false)
         }
 
-        return 1
+        executor = null
+        command = null
+        executing = false
     }
 
 }

@@ -18,15 +18,20 @@ object GitConfig {
 
     private var registered: Boolean = false
 
-    private lateinit var dataDir: Path
+    private lateinit var dataPath: Path
 
     lateinit var config: Config
 
+    lateinit var server: MinecraftServer
+
     fun register(server: MinecraftServer) {
-        if (!registered) initialize(server)
+        this.server = server
+
+        if (!registered) initialize()
 
         ServerLifecycleEvents.SERVER_STARTING.register {
-            initialize(it)
+            this.server = it
+            initialize()
         }
 
         ServerLifecycleEvents.SERVER_STOPPING.register {
@@ -36,22 +41,42 @@ object GitConfig {
         registered = true
     }
 
-    private fun initialize(server: MinecraftServer) {
-        // Sets data directory to the correct
-        // folder within the Fabric Zones
-        // directory
-        dataDir = server
+    private fun initialize() {
+        val dir = server
             .runDirectory.toPath()
             .resolve("config")
-            .resolve("gitmod")
 
-        Files.createDirectories(dataDir)
+        Files.createDirectories(dir)
 
-        loadAllData(server)
+        dataPath = dir.resolve("gitmod.json")
+        with(dataPath.toFile()) {
+            if (!this.exists()) initData(this)
+        }
+
+
+        loadAllData()
     }
 
-    private fun loadAllData(server: MinecraftServer) {
-        config = readFromFile(dataDir.toString())
+    private fun initData(dataFile : File) {
+        dataFile.writeText(
+            """
+                {
+                  "gitPath": "",
+                  "operators": {}
+                }
+            """.trimIndent()
+        )
+    }
+
+
+    fun loadAllData() {
+        println("[GitMod] Loading all data..")
+        // println(dataPath.toAbsolutePath().toString())
+        config = readFromFile(dataPath.toFile())
+
+        print("[GitMod] Operators: ")
+        config.operators.keys.forEach { key -> print(key) }
+        println()
 
         // fix data
         if (config.gitPath.isNullOrBlank()) {
@@ -61,8 +86,8 @@ object GitConfig {
     }
 
 
-    private fun readFromFile(dataString: String): Config {
-        return Json.decodeFromString(Config.serializer(), dataString)
+    private fun readFromFile(dataFile: File): Config {
+        return Json.decodeFromString(Config.serializer(), dataFile.readText())
     }
 
     private fun writeToFile(dataFile: File, data: Config) {
@@ -70,14 +95,12 @@ object GitConfig {
     }
 
     /**
-     * Gets all the uuids of the builders that are currently online
+     * Gets all the uuids of the operators that are currently online
      *
      * @return list of keys in the cache converted to uuids
      */
     fun getOnlineOperators(): Set<String> {
-        println("getting online ops yooo")
-        println(config.operators)
-        return config.operators.keys
+        return config.operators.values.toSet()
     }
 
     /**
