@@ -18,8 +18,10 @@ object GitCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
         dispatcher.register(
             AegisCommandBuilder("git") {
-                requires(Permissions::checkOperatorPermission)
+                requires { it.hasPermissionLevel(4) }
+
                 executes { invalidCommand(it, "Invalid invocation. Try /git status") }
+
                 greedyString("args") {
                     executes { gitCommand(it, StringArgumentType.getString(it, "args")) }
                     suggests(GitSuggestionProvider::getSuggestions)
@@ -53,7 +55,9 @@ object GitCommand : Command() {
                 "status",
                 "log",
                 "add .",
-                "commit -a",
+                "add -A",
+                "commit -m",
+                "commit -a -m",
                 "push origin master",
                 "pull origin master"
             ).map { builder.suggest(it) }

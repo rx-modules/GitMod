@@ -12,7 +12,7 @@ object GitConfigCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
         dispatcher.register(
             AegisCommandBuilder("gitconfig") {
-                requires(Permissions::checkOperatorPermission)
+                requires { it.hasPermissionLevel(4) }
 
                 literal("edit") {
                     greedyString("args") {
@@ -27,7 +27,7 @@ object GitConfigCommand : Command() {
 
     private fun editGitConfig(context: Context, args: String): Int {
         val configPath = "${context.source.player.uuidAsString}.gitconfig"
-        val cmd = "git -C ${ConfigManager.dirPath.resolve("gitconfigs")} -f $configPath $args"
+        val cmd = "git config -f $configPath $args"
 
         GlobalScope.launch(Dispatchers.IO) {
             GitHandler.runGit(cmd, context.source)

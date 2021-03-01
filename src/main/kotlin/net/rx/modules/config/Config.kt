@@ -26,5 +26,4 @@ data class Operator(
      */
     val name: String = "",
     val uuid: String = "",
-    val hasGitConfig: Boolean = false
 )

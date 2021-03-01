@@ -86,11 +86,16 @@ object ConfigManager {
         // println(dataPath.toAbsolutePath().toString())
         config = readFromFile(configPath.toFile())
 
-        logger.debug("Operators: ")
-        config.operators.forEach { op -> logger.debug(op.name) }
-        println()
+        logger.info("Operators: ")
+        config.operators.forEach { op -> logger.info(op.name) }
 
         fixGitPath()
+    }
+
+    private fun saveAllData() {
+        logger.info("Saving all data..")
+        // println(dataPath.toAbsolutePath().toString())
+        writeToFile(configPath.toFile(), config)
     }
 
     private fun fixGitPath() {
@@ -128,6 +133,15 @@ object ConfigManager {
     }
 
     /**
+     * Gets Operator which matches UUID, otherwise null
+     *
+     * @return Operator(uuid) of that uuid
+     */
+    fun getOperator(uuid: String): Operator? {
+        return config.operators.filter{ it.uuid.equals(uuid) }?.get(0)
+    }
+
+    /**
      * Gets the defined gitpath in the config
      *
      * @return Path to git repo
@@ -142,6 +156,7 @@ object ConfigManager {
         }
 
         config.operators.add(Operator(name, uuid))
+        saveAllData()
         return 1
     }
 
@@ -151,6 +166,7 @@ object ConfigManager {
         }
 
         config.operators = config.operators.filter { it.name != name } as MutableList<Operator>
+        saveAllData()
         return 1
     }
 }

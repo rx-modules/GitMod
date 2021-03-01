@@ -1,6 +1,7 @@
 package net.rx.modules
 
 import net.rx.modules.commands.*
+import net.rx.modules.config.ConfigManager
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -19,15 +20,19 @@ object GitHandler {
     }
 
     fun runGit(path: String, args: String, source: Source) {
-        runGit("git -C \"$path\" $args", source)
+        source.sendFeedback(
+            gray("executing: git $args"), true)
+
+        val pathToGitConfig = ConfigManager.dirPath
+            .resolve("gitconfig")
+            .resolve("${source.player.uuidAsString}.gitconfig")
+            .toAbsolutePath()
+
+        runGit("git -c include.path:${pathToGitConfig.toString()}  -C \"$path\" $args", source)
     }
 
     fun runGit(cmd: String, source: Source) {
         setAll(true, source.player.entityName, cmd)
-
-
-        source.sendFeedback(
-            gray("executing: $cmd"), true)
 
         val argv = ArgumentTokenizer.tokenize(cmd).toTypedArray()
 
@@ -41,7 +46,7 @@ object GitHandler {
             val stdout = proc.inputStream.bufferedReader().readText().trim()
             val stderr = proc.errorStream.bufferedReader().readText().trim()
 
-            if (stdout.isNullOrBlank()) {
+            if (!stdout.isNullOrBlank()) {
                 source.sendFeedback(
                     green(stdout), false)
             }

@@ -7,6 +7,7 @@ abstract class Command {
         fun registerAll(dispatcher: Dispatcher) {
             GitCommand.register(dispatcher)
             GitAdminCommand.register(dispatcher)
+            GitConfigCommand.register(dispatcher)
         }
     }
 }
