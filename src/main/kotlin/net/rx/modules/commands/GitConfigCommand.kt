@@ -26,8 +26,12 @@ object GitConfigCommand : Command() {
     }
 
     private fun editGitConfig(context: Context, args: String): Int {
-        val configPath = "${context.source.player.uuidAsString}.gitconfig"
-        val cmd = "git config -f $configPath $args"
+        val pathToGitConfig = ConfigManager.dirPath
+            .resolve("gitconfig")
+            .resolve("${context.source.player.uuidAsString}")
+            .toAbsolutePath()
+
+        val cmd = "git config -f $pathToGitConfig $args"
 
         GlobalScope.launch(Dispatchers.IO) {
             GitHandler.runGit(cmd, context.source)
