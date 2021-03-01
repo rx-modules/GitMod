@@ -46,7 +46,7 @@ object GitHandler {
             source.sendFeedback(
                 gray("executing: git $args"), true)
 
-            runGit("git -c include.path=${pathToGitConfig.toAbsolutePath().toString()}  -C \"$path\" $args", source)
+            runGit("git -c include.path=\"${pathToGitConfig.toAbsolutePath().toString()}\"  -C \"$path\" $args", source)
         }
     }
 

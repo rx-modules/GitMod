@@ -35,7 +35,7 @@ object GitConfigCommand : Command() {
             .resolve("${context.source.player.uuidAsString}")
             .toAbsolutePath()
 
-        val cmd = "git config -f $pathToGitConfig $args"
+        val cmd = "git config -f \"$pathToGitConfig\" $args"
 
         GlobalScope.launch(Dispatchers.IO) {
             GitHandler.runGit(cmd, context.source)
