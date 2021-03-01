@@ -44,7 +44,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0"
 
     // Aegis: https://github.com/P03W/Aegis
-    implementation "com.github.P03W:Aegis:${project.aegis_version}"
+    modImplementation("com.github.P03W:Aegis:${project.aegis_version}") { exclude group: "net.fabricmc.fabric-api" }
     include "com.github.P03W:Aegis:${project.aegis_version}"
 }
 
