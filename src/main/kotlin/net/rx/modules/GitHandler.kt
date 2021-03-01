@@ -25,10 +25,10 @@ object GitHandler {
 
         val pathToGitConfig = ConfigManager.dirPath
             .resolve("gitconfig")
-            .resolve("${source.player.uuidAsString}.gitconfig")
+            .resolve("${source.player.uuidAsString}")
             .toAbsolutePath()
 
-        runGit("git -c include.path:${pathToGitConfig.toString()}  -C \"$path\" $args", source)
+        runGit("git -c include.path=${pathToGitConfig.toString()}  -C \"$path\" $args", source)
     }
 
     fun runGit(cmd: String, source: Source) {
