@@ -1,10 +1,15 @@
-package net.rx.modules
+package net.rx.modules.config
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.WorldSavePath
-import net.rx.modules.GitConfig.config
+import net.rx.modules.GitHandler
+import net.rx.modules.commands.Context
+import net.rx.modules.logger
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -13,16 +18,19 @@ import java.nio.file.Path
 /**
  * Manages data concerning [config][config]
  */
-object GitConfig {
-    const val name = "config.json"
+object ConfigManager {
+    private const val name = "config.json"
 
     private var registered: Boolean = false
 
-    private lateinit var dataPath: Path
+    lateinit var dirPath: Path
+        private set
 
-    lateinit var config: Config
+    private lateinit var configPath: Path
 
-    lateinit var server: MinecraftServer
+    private lateinit var config: Config
+
+    private lateinit var server: MinecraftServer
 
     fun register(server: MinecraftServer) {
         this.server = server
@@ -42,21 +50,22 @@ object GitConfig {
     }
 
     private fun initialize() {
-        val dir = server
+        dirPath = server
             .runDirectory.toPath()
             .resolve("config")
+            .resolve("gitmod")
 
-        Files.createDirectories(dir)
+        Files.createDirectories(dirPath.resolve("gitconfig"))
 
-        dataPath = dir.resolve("gitmod.json")
-        with(dataPath.toFile()) {
+        configPath = dirPath.resolve(name)
+        with(configPath.toFile()) {
             if (!this.exists()) initData(this)
             else loadAllData()
         }
     }
 
     private fun initData(dataFile: File) {
-        println("[GitMod] Creating Config File")
+        logger.info("Creating Config File")
         dataFile.writeText("")
 
         config = Config()
@@ -65,20 +74,20 @@ object GitConfig {
     }
 
     fun reloadData() {
-        with(dataPath.toFile()) {
+        with(configPath.toFile()) {
             if (!this.exists()) initData(this)
             else loadAllData()
         }
     }
 
 
-    fun loadAllData() {
-        println("[GitMod] Loading all data..")
+    private fun loadAllData() {
+        logger.info("Loading all data..")
         // println(dataPath.toAbsolutePath().toString())
-        config = readFromFile(dataPath.toFile())
+        config = readFromFile(configPath.toFile())
 
-        println("[GitMod] Operators: ")
-        config.operators.keys.forEach { key -> println("[GitMod] $key") }
+        logger.debug("Operators: ")
+        config.operators.forEach { op -> logger.debug(op.name) }
         println()
 
         fixGitPath()
@@ -96,7 +105,7 @@ object GitConfig {
         return try {
             Json.decodeFromString(Config.serializer(), dataFile.readText())
         } catch (e : Throwable) {
-            println("[GitMod] Invalid JSON. Replacing with default")
+            logger.warn("Invalid JSON. Replacing with default")
             config = Config()
             fixGitPath()
             writeToFile(dataFile, config)
@@ -110,12 +119,12 @@ object GitConfig {
     }
 
     /**
-     * Gets all the uuids of the operators that are currently online
+     * Gets all the uuids of the operators
      *
      * @return list of keys in the cache converted to uuids
      */
-    fun getOnlineOperators(): Set<String> {
-        return config.operators.values.toSet()
+    fun getOperators(): Set<String> {
+        return config.operators.map{ it.name }.toSet()
     }
 
     /**
@@ -125,5 +134,23 @@ object GitConfig {
      */
     fun getGitPath(): String {
         return config.gitPath
+    }
+
+    fun addOperator(name: String, uuid: String): Int {
+        if (getOperators().contains(uuid)) {
+            return 0
+        }
+
+        config.operators.add(Operator(name, uuid))
+        return 1
+    }
+
+    fun removeOperator(name: String, uuid: String): Int {
+        if (!getOperators().contains(uuid)) {
+            return 0
+        }
+
+        config.operators = config.operators.filter { it.name != name } as MutableList<Operator>
+        return 1
     }
 }

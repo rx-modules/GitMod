@@ -1,0 +1,65 @@
+package net.rx.modules.commands
+
+import com.github.p03w.aegis.AegisCommandBuilder
+import com.mojang.brigadier.arguments.StringArgumentType
+import com.mojang.brigadier.suggestion.SuggestionProvider
+import com.mojang.brigadier.suggestion.Suggestions
+import com.mojang.brigadier.suggestion.SuggestionsBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import net.rx.modules.GitHandler
+import net.rx.modules.config.ConfigManager
+import java.util.concurrent.CompletableFuture
+
+
+object GitCommand : Command() {
+
+    override fun register(dispatcher: Dispatcher) {
+        dispatcher.register(
+            AegisCommandBuilder("git") {
+                requires(Permissions::checkOperatorPermission)
+                executes { invalidCommand(it, "Invalid invocation. Try /git status") }
+                greedyString("args") {
+                    executes { gitCommand(it, StringArgumentType.getString(it, "args")) }
+                    suggests(GitSuggestionProvider::getSuggestions)
+                }
+            }.build()
+        )
+    }
+
+    private fun gitCommand(context: Context, args: String): Int {
+        if (GitHandler.executing) {
+            val feedback = "${GitHandler.executor} is current running ${GitHandler.command}. Please wait.."
+            context.source.sendFeedback(red(feedback), true)
+            return 0
+        }
+
+        val path = ConfigManager.getGitPath()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            GitHandler.runGit(path, args, context.source)
+        }
+
+        return 0
+    }
+
+    internal object GitSuggestionProvider : SuggestionProvider<Source> {
+        override fun getSuggestions(
+            context: Context, builder: SuggestionsBuilder
+        ): CompletableFuture<Suggestions> {
+            // Suggestions for common git sub-commands to run
+            listOf(
+                "status",
+                "log",
+                "add .",
+                "commit -a",
+                "push origin master",
+                "pull origin master"
+            ).map { builder.suggest(it) }
+
+            return builder.buildFuture()
+        }
+    }
+
+}
