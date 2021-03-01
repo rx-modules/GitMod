@@ -2,12 +2,16 @@ package net.rx.modules.commands
 
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.suggestion.SuggestionProvider
+import com.mojang.brigadier.suggestion.Suggestions
+import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.rx.modules.config.ConfigManager
+import java.util.concurrent.CompletableFuture
 
 /*
 Handy aliases to use through out command code
@@ -29,6 +33,15 @@ fun infoMessage(context: Context, msg: LiteralText): Int {
         msg, false)
     return 0
 }
+
+//fun suggestFactory(suggestions: List<String>): SuggestionProvider<Source> {
+//    return SuggestionProvider<Source> { context, builder ->
+//        // Suggestions for common git sub-commands to run
+//        suggestions.map { builder.suggest(it) }
+//
+//        builder.buildFuture()
+//    }
+//}
 
 
 fun red(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.RED))

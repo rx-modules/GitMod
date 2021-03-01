@@ -15,7 +15,10 @@ data class Config(
     var gitPath: String = "",
 
     // operators to handle, UUID: name
-    var operators: MutableList<Operator> = mutableListOf()
+    var operators: MutableList<Operator> = mutableListOf(),
+
+    // force personal git configs
+    var forceGitConfig: Boolean = false
 
 )
 

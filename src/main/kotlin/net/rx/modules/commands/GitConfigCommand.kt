@@ -2,25 +2,29 @@ package net.rx.modules.commands
 
 import com.github.p03w.aegis.AegisCommandBuilder
 import com.mojang.brigadier.arguments.StringArgumentType
+import com.mojang.brigadier.suggestion.SuggestionProvider
+import com.mojang.brigadier.suggestion.Suggestions
+import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.rx.modules.GitHandler
 import net.rx.modules.config.ConfigManager
+import java.util.concurrent.CompletableFuture
 
 object GitConfigCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
         dispatcher.register(
             AegisCommandBuilder("gitconfig") {
-                requires { it.hasPermissionLevel(4) }
+                requires { ConfigManager.isOperator(it.player.uuidAsString) }
 
-                literal("edit") {
-                    greedyString("args") {
-                        executes {
-                           editGitConfig(it, StringArgumentType.getString(it, "args"))
-                        }
+                greedyString("args") {
+                    executes {
+                        editGitConfig(it, StringArgumentType.getString(it, "args"))
                     }
                 }
+
+                suggests(GitConfigSuggestionProvider::getSuggestions)
             }.build()
         )
     }
@@ -38,5 +42,20 @@ object GitConfigCommand : Command() {
         }
 
         return 1
+    }
+
+    internal object GitConfigSuggestionProvider : SuggestionProvider<Source> {
+        override fun getSuggestions(
+            context: Context, builder: SuggestionsBuilder
+        ): CompletableFuture<Suggestions> {
+            // Suggestions for common git sub-commands to run
+            listOf(
+                "user.name <name>",
+                "user.email <name>@email.com",
+                "remote.origin.url <username>:<token>@<git-repo>",
+            ).map { builder.suggest(it) }
+
+            return builder.buildFuture()
+        }
     }
 }

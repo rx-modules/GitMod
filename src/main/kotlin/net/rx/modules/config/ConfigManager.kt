@@ -28,7 +28,7 @@ object ConfigManager {
 
     private lateinit var configPath: Path
 
-    private lateinit var config: Config
+    lateinit var config: Config
 
     private lateinit var server: MinecraftServer
 
@@ -132,13 +132,13 @@ object ConfigManager {
         return config.operators.map{ it.name }.toSet()
     }
 
-    /**
-     * Gets Operator which matches UUID, otherwise null
-     *
-     * @return Operator(uuid) of that uuid
-     */
-    fun getOperator(uuid: String): Operator? {
-        return config.operators.filter{ it.uuid.equals(uuid) }?.get(0)
+    fun isOperator(uuid: String): Boolean {
+        for (op in config.operators) {
+            if (op.uuid == uuid) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -151,7 +151,7 @@ object ConfigManager {
     }
 
     fun addOperator(name: String, uuid: String): Int {
-        if (getOperators().contains(uuid)) {
+        if (isOperator(uuid)) {
             return 0
         }
 
@@ -161,7 +161,7 @@ object ConfigManager {
     }
 
     fun removeOperator(name: String, uuid: String): Int {
-        if (!getOperators().contains(uuid)) {
+        if (!isOperator(uuid)) {
             return 0
         }
 

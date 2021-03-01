@@ -3,6 +3,7 @@ package net.rx.modules.commands
 import com.github.p03w.aegis.AegisCommandBuilder
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.minecraft.command.argument.EntityArgumentType
+import net.minecraft.server.PlayerManager
 import net.minecraft.server.network.ServerPlayerEntity
 import net.rx.modules.config.ConfigManager
 
@@ -35,6 +36,10 @@ object GitAdminCommand : Command() {
                         }
                     }
 
+                    literal("list") {
+                        executes(::listOperators)
+                    }
+
                 }
             }.build()
         )
@@ -48,11 +53,14 @@ object GitAdminCommand : Command() {
     }
 
     private fun addOperator(context: Context, player: ServerPlayerEntity): Int {
-        val out = ConfigManager.removeOperator(player.entityName, player.uuid.toString())
+        val out = ConfigManager.addOperator(player.entityName, player.uuid.toString())
 
-        if (out == 1)
+        if (out == 1) {
             context.source.sendFeedback(
-                gray("Successfully added ${player.entityName} as an operator"), true)
+                gray("Successfully added ${player.entityName} as an operator"), true
+            )
+            context.source.player.server.playerManager.sendCommandTree(context.source.player)
+        }
         else
             context.source.sendFeedback(
                 red("Could not added, ${player.entityName} is already an operator"), true)
@@ -60,15 +68,24 @@ object GitAdminCommand : Command() {
     }
 
     private fun removeOperator(context: Context, player: ServerPlayerEntity): Int {
-        val out = ConfigManager.addOperator(player.entityName, player.uuid.toString())
+        val out = ConfigManager.removeOperator(player.entityName, player.uuid.toString())
 
-        if (out == 1)
+        if (out == 1) {
             context.source.sendFeedback(
-                gray("Successfully removed ${player.entityName} as an operator"), true)
+                gray("Successfully removed ${player.entityName} as an operator"), true
+            )
+            context.source.player.server.playerManager.sendCommandTree(context.source.player)
+        }
         else
             context.source.sendFeedback(
                 red("Could not remove, ${player.entityName} is not an operator"), true)
 
         return out
+    }
+
+    private fun listOperators(context: Context): Int {
+        context.source.sendFeedback(
+            gray("Operators: ${ConfigManager.getOperators().joinToString(",")}"), false)
+        return 1
     }
 }

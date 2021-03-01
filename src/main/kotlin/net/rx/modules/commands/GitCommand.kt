@@ -18,7 +18,7 @@ object GitCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
         dispatcher.register(
             AegisCommandBuilder("git") {
-                requires { it.hasPermissionLevel(4) }
+                requires { ConfigManager.isOperator(it.player.uuidAsString) }
 
                 executes { invalidCommand(it, "Invalid invocation. Try /git status") }
 
@@ -65,5 +65,4 @@ object GitCommand : Command() {
             return builder.buildFuture()
         }
     }
-
 }

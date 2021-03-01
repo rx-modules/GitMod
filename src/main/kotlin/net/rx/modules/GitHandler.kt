@@ -4,6 +4,7 @@ import net.rx.modules.commands.*
 import net.rx.modules.config.ConfigManager
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.exists
 
 object GitHandler {
     var executing: Boolean = false
@@ -20,15 +21,33 @@ object GitHandler {
     }
 
     fun runGit(path: String, args: String, source: Source) {
-        source.sendFeedback(
-            gray("executing: git $args"), true)
-
         val pathToGitConfig = ConfigManager.dirPath
             .resolve("gitconfig")
             .resolve("${source.player.uuidAsString}")
-            .toAbsolutePath()
 
-        runGit("git -c include.path=${pathToGitConfig.toString()}  -C \"$path\" $args", source)
+
+        if (ConfigManager.config.forceGitConfig && !pathToGitConfig.toFile().exists()) {
+            /* TODO: Make this cleaner */
+            source.sendFeedback(
+                red("Error. You do not have a gitconfig setup"), false)
+
+            source.sendFeedback(
+                gray("To create a gitconfig, you can use the /gitconfig command. Examples:"), false)
+
+            source.sendFeedback(
+                gray("  /gitconfig user.name ${source.player.entityName}"), false)
+
+            source.sendFeedback(
+                gray("  /gitconfig user.email ${source.player.entityName}@email.com"), false)
+
+            source.sendFeedback(
+                gray("  /gitconfig remote.origin.url ${source.player.entityName}:<API TOKEN>@<GIT-REPO>"), false)
+        } else {
+            source.sendFeedback(
+                gray("executing: git $args"), true)
+
+            runGit("git -c include.path=${pathToGitConfig.toAbsolutePath().toString()}  -C \"$path\" $args", source)
+        }
     }
 
     fun runGit(cmd: String, source: Source) {
