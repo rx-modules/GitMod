@@ -20,7 +20,7 @@ object GitCommand : Command() {
             AegisCommandBuilder("git") {
                 requires { ConfigManager.isOperator(it.player.uuidAsString) }
 
-                executes { invalidCommand(it, "Invalid invocation. Try /git status") }
+                // executes { invalidCommand(it, "Invalid invocation. Try /git status") }
 
                 greedyString("args") {
                     executes { gitCommand(it, StringArgumentType.getString(it, "args")) }
