@@ -36,6 +36,16 @@ object GitAdminCommand : Command() {
                         }
                     }
 
+                    literal("set") {
+                        string("player") {
+                            string("player") {
+                                executes {
+                                    setOperator(it, EntityArgumentType.getPlayer(it, "player"))
+                                }
+                            }
+                        }
+                    }
+
                     literal("list") {
                         executes(::listOperators)
                     }
@@ -69,6 +79,22 @@ object GitAdminCommand : Command() {
 
     private fun removeOperator(context: Context, player: ServerPlayerEntity): Int {
         val out = ConfigManager.removeOperator(player.entityName, player.uuid.toString())
+
+        if (out == 1) {
+            context.source.sendFeedback(
+                gray("Successfully removed ${player.entityName} as an operator"), true
+            )
+            context.source.player.server.playerManager.sendCommandTree(context.source.player)
+        }
+        else
+            context.source.sendFeedback(
+                red("Could not remove, ${player.entityName} is not an operator"), true)
+
+        return out
+    }
+
+    private fun setOperator(context: Context, player: ServerPlayerEntity): Int {
+        val out = ConfigManager.setOperator(player.entityName, player.uuid.toString())
 
         if (out == 1) {
             context.source.sendFeedback(

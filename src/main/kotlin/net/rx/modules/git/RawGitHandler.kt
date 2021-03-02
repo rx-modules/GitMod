@@ -1,12 +1,12 @@
-package net.rx.modules
+package net.rx.modules.git
 
+import net.rx.modules.ArgumentTokenizer
 import net.rx.modules.commands.*
 import net.rx.modules.config.ConfigManager
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-import kotlin.io.path.exists
 
-object GitHandler {
+object RawGitHandler {
     var executing: Boolean = false
         private set
     var executor: String? = null
@@ -15,9 +15,9 @@ object GitHandler {
         private set
 
     private fun setAll(executing: Boolean, executor: String, command: String) {
-        this.executing = executing
-        this.executor = executor
-        this.command = command
+        RawGitHandler.executing = executing
+        RawGitHandler.executor = executor
+        RawGitHandler.command = command
     }
 
     fun runGit(path: String, args: String, source: Source) {

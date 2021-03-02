@@ -8,16 +8,16 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import net.rx.modules.GitHandler
+import net.rx.modules.git.RawGitHandler
 import net.rx.modules.config.ConfigManager
 import java.util.concurrent.CompletableFuture
 
 
-object GitCommand : Command() {
+object RawGitCommand : Command() {
 
     override fun register(dispatcher: Dispatcher) {
         dispatcher.register(
-            AegisCommandBuilder("git") {
+            AegisCommandBuilder("rawgit") {
                 requires { ConfigManager.isOperator(it.player.uuidAsString) }
 
                 // executes { invalidCommand(it, "Invalid invocation. Try /git status") }
@@ -31,8 +31,8 @@ object GitCommand : Command() {
     }
 
     private fun gitCommand(context: Context, args: String): Int {
-        if (GitHandler.executing) {
-            val feedback = "${GitHandler.executor} is current running ${GitHandler.command}. Please wait.."
+        if (RawGitHandler.executing) {
+            val feedback = "${RawGitHandler.executor} is current running ${RawGitHandler.command}. Please wait.."
             context.source.sendFeedback(red(feedback), true)
             return 0
         }
@@ -40,7 +40,7 @@ object GitCommand : Command() {
         val path = ConfigManager.getGitPath()
 
         GlobalScope.launch(Dispatchers.IO) {
-            GitHandler.runGit(path, args, context.source)
+            RawGitHandler.runGit(path, args, context.source)
         }
 
         return 0

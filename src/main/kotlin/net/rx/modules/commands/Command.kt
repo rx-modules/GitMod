@@ -5,7 +5,7 @@ abstract class Command {
 
     companion object {
         fun registerAll(dispatcher: Dispatcher) {
-            GitCommand.register(dispatcher)
+            RawGitCommand.register(dispatcher)
             GitAdminCommand.register(dispatcher)
             GitConfigCommand.register(dispatcher)
         }

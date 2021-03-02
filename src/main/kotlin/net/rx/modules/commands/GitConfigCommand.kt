@@ -8,7 +8,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import net.rx.modules.GitHandler
+import net.rx.modules.git.RawGitHandler
 import net.rx.modules.config.ConfigManager
 import java.util.concurrent.CompletableFuture
 
@@ -38,7 +38,7 @@ object GitConfigCommand : Command() {
         val cmd = "git config -f \"$pathToGitConfig\" $args"
 
         GlobalScope.launch(Dispatchers.IO) {
-            GitHandler.runGit(cmd, context.source)
+            RawGitHandler.runGit(cmd, context.source)
         }
 
         return 1

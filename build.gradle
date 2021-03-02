@@ -41,6 +41,9 @@ dependencies {
     // You may need to force-disable transitiveness on them.
     // modImplementation "net.kyori:adventure-platform-fabric:4.0.0-SNAPSHOT"
 
+    // jgit
+    implementation "org.eclipse.jgit:org.eclipse.jgit:${project.jgit_version}"
+
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0"
 
     // Aegis: https://github.com/P03W/Aegis

@@ -20,6 +20,8 @@ data class Config(
     // force personal git configs
     var forceGitConfig: Boolean = false
 
+    // allows the use of other directories
+    // var otherGitPaths: MutableMap<String, String> = mutableMapOf()
 )
 
 @Serializable
@@ -29,4 +31,5 @@ data class Operator(
      */
     val name: String = "",
     val uuid: String = "",
+    val accessToRawGit: Boolean = false,
 )

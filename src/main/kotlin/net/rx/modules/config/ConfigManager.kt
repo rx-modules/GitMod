@@ -1,14 +1,9 @@
 package net.rx.modules.config
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.WorldSavePath
-import net.rx.modules.GitHandler
-import net.rx.modules.commands.Context
 import net.rx.modules.logger
 import java.io.File
 import java.nio.file.Files
