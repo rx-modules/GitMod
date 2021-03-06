@@ -1,6 +1,7 @@
 package net.rx.modules.commands
 
 import com.github.p03w.aegis.AegisCommandBuilder
+import com.github.p03w.aegis.aegisCommand
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
@@ -17,7 +18,7 @@ object RawGitCommand : Command() {
 
     override fun register(dispatcher: Dispatcher) {
         dispatcher.register(
-            AegisCommandBuilder("rawgit") {
+            aegisCommand("rawgit") {
                 requires { ConfigManager.isOperator(it.player.uuidAsString) }
 
                 // executes { invalidCommand(it, "Invalid invocation. Try /git status") }
@@ -26,7 +27,7 @@ object RawGitCommand : Command() {
                     executes { gitCommand(it, StringArgumentType.getString(it, "args")) }
                     suggests(GitSuggestionProvider::getSuggestions)
                 }
-            }.build()
+            }
         )
     }
 

@@ -1,6 +1,6 @@
 package net.rx.modules.commands
 
-import com.github.p03w.aegis.AegisCommandBuilder
+import com.github.p03w.aegis.aegisCommand
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture
 object GitConfigCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
         dispatcher.register(
-            AegisCommandBuilder("gitconfig") {
+            aegisCommand("gitconfig") {
                 requires { ConfigManager.isOperator(it.player.uuidAsString) }
 
                 greedyString("args") {
@@ -25,7 +25,7 @@ object GitConfigCommand : Command() {
                 }
 
                 suggests(GitConfigSuggestionProvider::getSuggestions)
-            }.build()
+            }
         )
     }
 

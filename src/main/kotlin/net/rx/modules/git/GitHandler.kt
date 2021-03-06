@@ -1,5 +1,6 @@
 package net.rx.modules.git
 
+import net.minecraft.text.LiteralText
 import net.rx.modules.config.ConfigManager
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
@@ -33,7 +34,8 @@ object GitHandler {
             logs = this?.log()!!.add(head).setMaxCount(LOG_COUNT).call()
         }
 
-
+        val out = LiteralText("")
+        logs?.forEach { out.append(LiteralText(it.shortMessage).styled { it } ) }
 
     }
 }

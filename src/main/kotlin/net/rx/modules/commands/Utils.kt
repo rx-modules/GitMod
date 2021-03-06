@@ -44,6 +44,6 @@ fun infoMessage(context: Context, msg: LiteralText): Int {
 //}
 
 
-fun red(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.RED))
-fun green(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.GREEN))
-fun gray(string: String): Text = LiteralText(string).setStyle(Style.EMPTY.withColor(Formatting.GRAY))
+fun red(string: String): Text = LiteralText(string).styled { Style.EMPTY.withColor(Formatting.RED) }
+fun green(string: String): Text = LiteralText(string).styled { Style.EMPTY.withColor(Formatting.GREEN) }
+fun gray(string: String): Text = LiteralText(string).styled { Style.EMPTY.withColor(Formatting.GRAY) }
