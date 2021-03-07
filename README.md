@@ -1,5 +1,5 @@
 # Git Mod - A Fabric Mod written in Kotlin
-![badge](https://minecraft.curseforge.com/projects/fabric-language-kotlin)
+![badge](https://i.imgur.com/c1DH9VL.png)
 
 A server-side git client usable within minecraft chat!
 
