@@ -23,7 +23,7 @@ object RawGitHandler {
     fun runGit(path: String, args: String, source: Source) {
         val pathToGitConfig = ConfigManager.dirPath
             .resolve("gitconfig")
-            .resolve("${source.player.uuidAsString}")
+            .resolve(source.player?.uuidAsString ?: "")
 
 
         if (ConfigManager.config.forceGitConfig && !pathToGitConfig.toFile().exists()) {
@@ -35,13 +35,13 @@ object RawGitHandler {
                 gray("To create a gitconfig, you can use the /gitconfig command. Examples:"), false)
 
             source.sendFeedback(
-                gray("  /gitconfig user.name ${source.player.entityName}"), false)
+                gray("  /gitconfig user.name ${source.player?.entityName}"), false)
 
             source.sendFeedback(
-                gray("  /gitconfig user.email ${source.player.entityName}@email.com"), false)
+                gray("  /gitconfig user.email ${source.player?.entityName}@email.com"), false)
 
             source.sendFeedback(
-                gray("  /gitconfig remote.origin.url ${source.player.entityName}:<API TOKEN>@<GIT-REPO>"), false)
+                gray("  /gitconfig remote.origin.url ${source.player?.entityName}:<API TOKEN>@<GIT-REPO>"), false)
         } else {
             source.sendFeedback(
                 gray("executing: git $args"), true)
@@ -51,7 +51,7 @@ object RawGitHandler {
     }
 
     fun runGit(cmd: String, source: Source) {
-        setAll(true, source.player.entityName, cmd)
+        setAll(true, source.player!!.entityName, cmd)
 
         val argv = ArgumentTokenizer.tokenize(cmd).toTypedArray()
 
@@ -65,17 +65,17 @@ object RawGitHandler {
             val stdout = proc.inputStream.bufferedReader().readText().trim()
             val stderr = proc.errorStream.bufferedReader().readText().trim()
 
-            if (!stdout.isNullOrBlank()) {
+            if (stdout.isNotBlank()) {
                 source.sendFeedback(
                     green(stdout), false)
             }
 
-            if (!stderr.isNullOrBlank()) {
+            if (stderr.isNotBlank()) {
                 source.sendFeedback(
                     red(stderr), false)
             }
 
-            if (stdout.isNullOrBlank() && stderr.isNullOrBlank()) {
+            if (stdout.isBlank() && stderr.isBlank()) {
                 source.sendFeedback(
                     green("GitCmd successfully executed (no output)"), false)
             }

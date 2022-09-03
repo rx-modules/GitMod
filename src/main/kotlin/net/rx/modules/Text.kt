@@ -21,11 +21,11 @@ fun text(block: TextBuilder.() -> Unit) = TextBuilder(block).build()
 
 
 class TextBuilder(block: TextBuilder.() -> Unit) {
-    var root: MutableText = LiteralText("")
-    var children: MutableList<MutableText> = mutableListOf()
+    var root: MutableText = MutableText.of(TextContent.EMPTY)
+    private var children: MutableList<Text> = mutableListOf()
 
     val NEW_LINE: MutableText
-        get() = LiteralText("\n")
+        get() = MutableText.of(LiteralTextContent("\n"))
 
     init {
         block()
@@ -52,23 +52,23 @@ class TextBuilder(block: TextBuilder.() -> Unit) {
     }
 
     infix fun String.styled(format: Formatting): MutableText {
-        return root.append(LiteralText(this).formatted(format))
+        return root.append(MutableText.of(LiteralTextContent(this)).formatted(format))
     }
 
-    infix fun String.styled(style: Style): MutableText {
-        return root.append(LiteralText(this).setStyle(style))
+    infix fun String.styled(style: Style): Text {
+        return root.append(MutableText.of(LiteralTextContent(this)).setStyle(style))
     }
 
-    infix fun String.styled(hex: Int): MutableText {
-        return root.append(LiteralText(this).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(hex))))
+    infix fun String.styled(hex: Int): Text {
+        return root.append(MutableText.of(LiteralTextContent(this)).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(hex))))
     }
 
 //    infix fun String.styled(block: StyleBuilder.() -> Unit): MutableText {
 //        return root.append(LiteralText(this).formatted(format))
 //    }
 
-    infix fun String.onClick(block: ClickEventBuilder.() -> Unit): MutableText {
-        return root.append(LiteralText(this).setStyle(Style.EMPTY.withClickEvent(
+    infix fun String.onClick(block: ClickEventBuilder.() -> Unit): Text {
+        return root.append(MutableText.of(LiteralTextContent(this)).setStyle(Style.EMPTY.withClickEvent(
             ClickEventBuilder().apply{ block }.build()
         )))
     }
@@ -76,9 +76,9 @@ class TextBuilder(block: TextBuilder.() -> Unit) {
     /**
      * Nested control
      */
-    operator fun String.invoke(block: TextBuilder.() -> Unit): MutableText {
+    operator fun String.invoke(block: TextBuilder.() -> Unit): Text {
         return root.append(
-            LiteralText(this).append(TextBuilder(block).build())
+            MutableText.of(LiteralTextContent(this)).append(TextBuilder(block).build())
         )
     }
 
@@ -86,11 +86,11 @@ class TextBuilder(block: TextBuilder.() -> Unit) {
      * Use only when alone, returns nothing
      */
     operator fun String.unaryPlus() {
-        children.add(LiteralText(this))
+        children.add(MutableText.of(LiteralTextContent(this)))
     }
 
     operator fun String.unaryMinus() {
-        children.add(LiteralText(this))
+        children.add(MutableText.of(LiteralTextContent(this)))
     }
 
 //    infix fun String.onHover(block: Unit.() -> Unit): MutableText {
@@ -104,7 +104,7 @@ class TextBuilder(block: TextBuilder.() -> Unit) {
     }
 
     infix fun styled(style: Style) {
-        root.style = style
+        root.styled(style)
     }
 
     fun build(): MutableText {
@@ -140,7 +140,7 @@ val test = text {
             action = ClickEvent.Action.RUN_COMMAND
             value = "/git status"
         }
-    } styled Formatting.RED
+    }
     -"testing"
 }
 

@@ -6,9 +6,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.text.LiteralText
-import net.minecraft.text.Style
-import net.minecraft.text.Text
+import net.minecraft.text.*
 import net.minecraft.util.Formatting
 import net.rx.modules.config.ConfigManager
 import java.util.concurrent.CompletableFuture
@@ -28,7 +26,7 @@ fun invalidCommand(context: Context, msg: String): Int {
     return 0
 }
 
-fun infoMessage(context: Context, msg: LiteralText): Int {
+fun infoMessage(context: Context, msg: Text): Int {
     context.source.sendFeedback(
         msg, false)
     return 0
@@ -44,6 +42,6 @@ fun infoMessage(context: Context, msg: LiteralText): Int {
 //}
 
 
-fun red(string: String): Text = LiteralText(string).styled { Style.EMPTY.withColor(Formatting.RED) }
-fun green(string: String): Text = LiteralText(string).styled { Style.EMPTY.withColor(Formatting.GREEN) }
-fun gray(string: String): Text = LiteralText(string).styled { Style.EMPTY.withColor(Formatting.GRAY) }
+fun red(string: String): MutableText = MutableText.of(LiteralTextContent(string)).styled { Style.EMPTY.withColor(Formatting.RED) }
+fun green(string: String): MutableText = MutableText.of(LiteralTextContent(string)).styled { Style.EMPTY.withColor(Formatting.GREEN) }
+fun gray(string: String): MutableText = MutableText.of(LiteralTextContent(string)).styled { Style.EMPTY.withColor(Formatting.GRAY) }

@@ -1,6 +1,6 @@
 package net.rx.modules.commands
 
-import com.github.p03w.aegis.aegisCommand
+import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
@@ -8,31 +8,34 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.minecraft.command.CommandRegistryAccess
+import net.minecraft.command.argument.MessageArgumentType
+import net.minecraft.server.command.CommandManager
+import net.minecraft.server.command.ServerCommandSource
 import net.rx.modules.git.RawGitHandler
 import net.rx.modules.config.ConfigManager
 import java.util.concurrent.CompletableFuture
 
 object GitConfigCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
-        dispatcher.register(
-            aegisCommand("gitconfig") {
-                requires { ConfigManager.isOperator(it.player.uuidAsString) }
+        val arg = CommandManager
+            .argument("args", MessageArgumentType.message())
+            .executes { editGitConfig(it, StringArgumentType.getString(it, "args")) }
 
-                greedyString("args") {
-                    executes {
-                        editGitConfig(it, StringArgumentType.getString(it, "args"))
-                    }
-                }
+        val gitConfigNode = CommandManager
+            .literal("gitconfig")
+            .requires { ConfigManager.isOperator(it.player!!.uuidAsString) }
+            .then(arg)
+            .build()
 
-                suggests(GitConfigSuggestionProvider::getSuggestions)
-            }
-        )
+        dispatcher.root.addChild(gitConfigNode);
     }
 
     private fun editGitConfig(context: Context, args: String): Int {
         val pathToGitConfig = ConfigManager.dirPath
             .resolve("gitconfig")
-            .resolve("${context.source.player.uuidAsString}")
+            .resolve(context.source.player?.uuidAsString ?: "")
             .toAbsolutePath()
 
         val cmd = "git config -f \"$pathToGitConfig\" $args"

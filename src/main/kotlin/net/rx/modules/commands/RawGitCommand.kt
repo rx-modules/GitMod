@@ -1,7 +1,6 @@
 package net.rx.modules.commands
 
-import com.github.p03w.aegis.AegisCommandBuilder
-import com.github.p03w.aegis.aegisCommand
+import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
@@ -9,29 +8,35 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import net.rx.modules.git.RawGitHandler
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.minecraft.command.CommandRegistryAccess
+import net.minecraft.command.argument.MessageArgumentType
+import net.minecraft.server.command.CommandManager
+import net.minecraft.server.command.CommandManager.RegistrationEnvironment
+import net.minecraft.server.command.ServerCommandSource
 import net.rx.modules.config.ConfigManager
+import net.rx.modules.git.RawGitHandler
 import java.util.concurrent.CompletableFuture
 
 
 object RawGitCommand : Command() {
 
     override fun register(dispatcher: Dispatcher) {
-        dispatcher.register(
-            aegisCommand("rawgit") {
-                requires { ConfigManager.isOperator(it.player.uuidAsString) }
+        val arg = CommandManager
+            .argument("target", StringArgumentType.greedyString())
+            .executes { gitCommand(it, StringArgumentType.getString(it, "target")) }
 
-                // executes { invalidCommand(it, "Invalid invocation. Try /git status") }
+        val gitNode = CommandManager
+            .literal("git")
+            .requires { ConfigManager.isOperator(it.player!!.uuidAsString) }
+            .then(arg)
+            .build()
 
-                greedyString("args") {
-                    executes { gitCommand(it, StringArgumentType.getString(it, "args")) }
-                    suggests(GitSuggestionProvider::getSuggestions)
-                }
-            }
-        )
+        dispatcher.root.addChild(gitNode);
     }
 
     private fun gitCommand(context: Context, args: String): Int {
+        print(args)
         if (RawGitHandler.executing) {
             val feedback = "${RawGitHandler.executor} is current running ${RawGitHandler.command}. Please wait.."
             context.source.sendFeedback(red(feedback), true)

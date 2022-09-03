@@ -1,9 +1,14 @@
 package net.rx.modules.commands
 
-import com.github.p03w.aegis.aegisCommand
+import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.command.argument.EntityArgumentType
+import net.minecraft.command.argument.MessageArgumentType
 import net.minecraft.server.PlayerManager
+import net.minecraft.server.command.CommandManager
+import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.ClickEvent
 import net.minecraft.util.Formatting
@@ -12,50 +17,52 @@ import net.rx.modules.text
 
 object GitAdminCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
-        dispatcher.register(
-            aegisCommand("gitadmin") {
-                requires { it.hasPermissionLevel(4) }
+        val gitAdminNode = CommandManager
+            .literal("gitadmin")
+            .requires { it.hasPermissionLevel(4) }
+            .build()
 
-                literal("reload") {
-                    executes { reload(it) }
-                }
+        val gitReloadNode = CommandManager
+            .literal("reload")
+            .executes{ reload(it)}
+            .build()
 
-                literal("operator") {
-                    literal("add") {
-                        executes { addOperator(it, it.source.player) }
-                        string("player") {
-                            executes {
-                                addOperator(it, EntityArgumentType.getPlayer(it, "player"))
-                            }
-                        }
-                    }
+        val gitOperatorNode = CommandManager
+            .literal("operator")
+            .build()
 
-                    literal("remove") {
-                        executes { removeOperator(it, it.source.player) }
-                        string("player") {
-                            executes {
-                                removeOperator(it, EntityArgumentType.getPlayer(it, "player"))
-                            }
-                        }
-                    }
+        val operatorAddArg = CommandManager
+            .argument("player", EntityArgumentType.player())
+            .executes { addOperator(it, EntityArgumentType.getPlayer(it, "player")) }
 
-//                    literal("set") {
-//                        string("player") {
-//                            string("player") {
-//                                executes {
-//                                    setOperator(it, EntityArgumentType.getPlayer(it, "player"))
-//                                }
-//                            }
-//                        }
-//                    }
+        val operatorRemoveArg = CommandManager
+            .argument("player", EntityArgumentType.player())
+            .executes { removeOperator(it, EntityArgumentType.getPlayer(it, "player")) }
 
-                    literal("list") {
-                        executes { listOperators(it) }
-                    }
+        val gitOperatorAddNode = CommandManager
+            .literal("add")
+            .executes{ addOperator(it, it.source.player!!) }
+            .then(operatorAddArg)
+            .build()
 
-                }
-            }
-        )
+        val gitOperatorRemoveNode = CommandManager
+            .literal("remove")
+            .then(operatorRemoveArg)
+            .build()
+
+        val gitOperatorListNode = CommandManager
+            .literal("list")
+            .executes(::listOperators)
+            .build()
+
+        dispatcher.root.addChild(gitAdminNode)
+
+        gitAdminNode.addChild(gitReloadNode)
+        gitAdminNode.addChild(gitOperatorNode)
+
+        gitOperatorNode.addChild(gitOperatorAddNode)
+        gitOperatorNode.addChild(gitOperatorRemoveNode)
+        gitOperatorNode.addChild(gitOperatorListNode)
     }
 
     private fun reload(context: Context): Int {
@@ -64,12 +71,8 @@ object GitAdminCommand : Command() {
             "hello world" styled Formatting.BOLD + Formatting.GREEN
             NEW_LINE
             "a more complex string" {
-                NEW_LINE
-                "testing" onClick {
-                    action = ClickEvent.Action.RUN_COMMAND
-                    value = "/git status"
-                }
-            } styled Formatting.RED
+
+            }
             -"testing"
         }
         context.source.sendFeedback(
@@ -85,7 +88,7 @@ object GitAdminCommand : Command() {
             context.source.sendFeedback(
                 gray("Successfully added ${player.entityName} as an operator"), true
             )
-            context.source.player.server.playerManager.sendCommandTree(context.source.player)
+            context.source.player?.server?.playerManager?.sendCommandTree(context.source.player)
         }
         else
             context.source.sendFeedback(
@@ -100,7 +103,7 @@ object GitAdminCommand : Command() {
             context.source.sendFeedback(
                 gray("Successfully removed ${player.entityName} as an operator"), true
             )
-            context.source.player.server.playerManager.sendCommandTree(context.source.player)
+            context.source.player?.server?.playerManager?.sendCommandTree(context.source.player)
         }
         else
             context.source.sendFeedback(

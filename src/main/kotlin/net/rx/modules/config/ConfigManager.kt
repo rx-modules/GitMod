@@ -94,7 +94,7 @@ object ConfigManager {
     }
 
     private fun fixGitPath() {
-        if (config.gitPath.isNullOrBlank()) {
+        if (config.gitPath.isBlank()) {
             config.gitPath = server
                 .getSavePath(WorldSavePath.DATAPACKS).toString()
         }
