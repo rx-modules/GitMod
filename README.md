@@ -16,7 +16,7 @@ Even aliases!
 
 0. Make sure you have Git installed are you system and available through your $PATH. If you are on Windows, it's very likely this mod will fail :(.
 
-1. Install this Mod along side fabric-language-kotlin
+1. Install this Mod alongside fabric-language-kotlin
 
 2. Run the server / client to create an empty configuration file `config/gitmod.json`
 
