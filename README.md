@@ -40,7 +40,7 @@ At the moment, this is an incredibly cursed mod. Essentially, it takes the argum
 
 Also, this mod will heavily rely on your personal git installation since it leverages your shell. In the future, the plan is to develop a client `/git` cmd and a `/gitraw` cmd where `/git` interfaces with the JGit library and `/gitraw` works thru the shell process. For now, we have jank :D.
 
-Do note that when working with services like `github`, you'll have to work with some sort of authentication to get your `git` to operate with `github` w/o you inputting a password into minecraft (since that will be blocked). This will involve some sort of ssh key or something, so do be aware. I suggest you gave the `git` installation on the server some sort of special email and username to differentiate from normal commits to your repo!
+Do note that when working with services like `github`, you'll have to work with some sort of authentication to get your `git` to operate with `github` w/o you inputting a password into minecraft (since that will be blocked). This will involve some sort of ssh key or something, so do be aware. I suggest you give the `git` installation on the server some sort of special email and username to differentiate from normal commits to your repo!
 
 ## Why?
 
