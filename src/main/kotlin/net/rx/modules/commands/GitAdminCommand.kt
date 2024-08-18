@@ -13,7 +13,6 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.ClickEvent
 import net.minecraft.util.Formatting
 import net.rx.modules.config.ConfigManager
-import net.rx.modules.text
 
 object GitAdminCommand : Command() {
     override fun register(dispatcher: Dispatcher) {
@@ -67,47 +66,39 @@ object GitAdminCommand : Command() {
 
     private fun reload(context: Context): Int {
         ConfigManager.reloadData()
-        val test = text {
-            "hello world" styled Formatting.BOLD + Formatting.GREEN
-            NEW_LINE
-            "a more complex string" {
-
-            }
-            -"testing"
-        }
         context.source.sendFeedback(
-            gray("Successfully reloaded configuration"), true)
-        context.source.sendFeedback(test, true)
+            { gray("Successfully reloaded configuration") }, true)
+
         return 1
     }
 
     private fun addOperator(context: Context, player: ServerPlayerEntity): Int {
-        val out = ConfigManager.addOperator(player.entityName, player.uuid.toString())
+        val out = ConfigManager.addOperator(player.name.string, player.uuid.toString())
 
         if (out == 1) {
             context.source.sendFeedback(
-                gray("Successfully added ${player.entityName} as an operator"), true
+                { gray("Successfully added ${player.name} as an operator") }, true
             )
             context.source.player?.server?.playerManager?.sendCommandTree(context.source.player)
         }
         else
             context.source.sendFeedback(
-                red("Could not added, ${player.entityName} is already an operator"), true)
+                { red("Could not added, ${player.name} is already an operator") }, true)
         return 1
     }
 
     private fun removeOperator(context: Context, player: ServerPlayerEntity): Int {
-        val out = ConfigManager.removeOperator(player.entityName, player.uuid.toString())
+        val out = ConfigManager.removeOperator(player.name.string, player.uuid.toString())
 
         if (out == 1) {
             context.source.sendFeedback(
-                gray("Successfully removed ${player.entityName} as an operator"), true
+                { gray("Successfully removed ${player.name.string} as an operator") }, true
             )
             context.source.player?.server?.playerManager?.sendCommandTree(context.source.player)
         }
         else
             context.source.sendFeedback(
-                red("Could not remove, ${player.entityName} is not an operator"), true)
+                { red("Could not remove, ${player.name} is not an operator") }, true)
 
         return out
     }
@@ -130,7 +121,7 @@ object GitAdminCommand : Command() {
 
     private fun listOperators(context: Context): Int {
         context.source.sendFeedback(
-            gray("Operators: ${ConfigManager.getOperators().joinToString(",")}"), false)
+            { gray("Operators: ${ConfigManager.getOperators().joinToString(",")}") }, false)
         return 1
     }
 }

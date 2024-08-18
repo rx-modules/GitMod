@@ -1,12 +1,12 @@
 plugins {
-    id 'fabric-loom' version '1.0-SNAPSHOT'
+    id 'fabric-loom' version "1.7-SNAPSHOT"
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm"
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.7.10'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.22'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -27,12 +27,10 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${project.kotlinx_serialization_json_version}"
 
     // jgit
     // implementation "org.eclipse.jgit:org.eclipse.jgit:${project.jgit_version}"
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 processResources {
@@ -50,14 +48,14 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 
     // Minecraft 1.18.1 upwards uses Java 17.
-    it.options.release = 17
+    it.options.release = 21
 }
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
 // If you remove this task, sources will not be generated.
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = "sources"
+//    classifier = "sources"
     from sourceSets.main.allSource
 }
 
@@ -94,4 +92,4 @@ publishing {
     }
 }
 
-compileKotlin.kotlinOptions.jvmTarget = "17"
+compileKotlin.kotlinOptions.jvmTarget = "21"

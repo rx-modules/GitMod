@@ -39,7 +39,7 @@ object RawGitCommand : Command() {
         print(args)
         if (RawGitHandler.executing) {
             val feedback = "${RawGitHandler.executor} is current running ${RawGitHandler.command}. Please wait.."
-            context.source.sendFeedback(red(feedback), true)
+            context.source.sendFeedback({ red(feedback) }, true)
             return 0
         }
 
@@ -49,7 +49,7 @@ object RawGitCommand : Command() {
             RawGitHandler.runGit(path, args, context.source)
         }
 
-        return 0
+        return 1
     }
 
     internal object GitSuggestionProvider : SuggestionProvider<Source> {

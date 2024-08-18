@@ -22,9 +22,9 @@ object GitMod : ModInitializer {
             ConfigManager.register(it)
         }
 
-        ServerLifecycleEvents.SERVER_STOPPED.register {
-
-        }
+//        ServerLifecycleEvents.SERVER_STOPPED.register {
+//
+//        }
 
         CommandRegistrationCallback.EVENT.register(::registerCommands)
     }

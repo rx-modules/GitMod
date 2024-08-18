@@ -29,29 +29,29 @@ object RawGitHandler {
         if (ConfigManager.config.forceGitConfig && !pathToGitConfig.toFile().exists()) {
             /* TODO: Make this cleaner */
             source.sendFeedback(
-                red("Error. You do not have a gitconfig setup"), false)
+                { red("Error. You do not have a gitconfig setup") }, false)
 
             source.sendFeedback(
-                gray("To create a gitconfig, you can use the /gitconfig command. Examples:"), false)
+                { gray("To create a gitconfig, you can use the /gitconfig command. Examples:") }, false)
 
             source.sendFeedback(
-                gray("  /gitconfig user.name ${source.player?.entityName}"), false)
+                { gray("  /gitconfig user.name ${source.player?.name}") }, false)
 
             source.sendFeedback(
-                gray("  /gitconfig user.email ${source.player?.entityName}@email.com"), false)
+                { gray("  /gitconfig user.email ${source.player?.name}@email.com") }, false)
 
             source.sendFeedback(
-                gray("  /gitconfig remote.origin.url ${source.player?.entityName}:<API TOKEN>@<GIT-REPO>"), false)
+                { gray("  /gitconfig remote.origin.url ${source.player?.name}:<API TOKEN>@<GIT-REPO>") }, false)
         } else {
             source.sendFeedback(
-                gray("executing: git $args"), true)
+                { gray("executing: git $args") }, true)
 
             runGit("git -c include.path=\"${pathToGitConfig.toAbsolutePath().toString()}\"  -C \"$path\" $args", source)
         }
     }
 
     fun runGit(cmd: String, source: Source) {
-        setAll(true, source.player!!.entityName, cmd)
+        setAll(true, source.player!!.name.string, cmd)
 
         val argv = ArgumentTokenizer.tokenize(cmd).toTypedArray()
 
@@ -67,23 +67,23 @@ object RawGitHandler {
 
             if (stdout.isNotBlank()) {
                 source.sendFeedback(
-                    green(stdout), false)
+                    { green(stdout) }, false)
             }
 
             if (stderr.isNotBlank()) {
                 source.sendFeedback(
-                    red(stderr), false)
+                    { red(stderr) }, false)
             }
 
             if (stdout.isBlank() && stderr.isBlank()) {
                 source.sendFeedback(
-                    green("GitCmd successfully executed (no output)"), false)
+                    { green("GitCmd successfully executed (no output)") }, false)
             }
 
         } catch(e: IOException) {
             e.printStackTrace()
             source.sendFeedback(
-                red("git exception in code: $e"), true)
+                { red("git exception in code: $e") }, true)
         }
 
         executor = null

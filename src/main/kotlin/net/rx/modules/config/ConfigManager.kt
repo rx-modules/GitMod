@@ -46,7 +46,7 @@ object ConfigManager {
 
     private fun initialize() {
         dirPath = server
-            .runDirectory.toPath()
+            .runDirectory.toAbsolutePath()
             .resolve("config")
             .resolve("gitmod")
 

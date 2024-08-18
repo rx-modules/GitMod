@@ -21,14 +21,13 @@ typealias Source = ServerCommandSource
 
 
 fun invalidCommand(context: Context, msg: String): Int {
-    context.source.sendFeedback(
-        red(msg), false)
+    context.source.sendFeedback({ red(msg) }, false)
     return 0
 }
 
 fun infoMessage(context: Context, msg: Text): Int {
     context.source.sendFeedback(
-        msg, false)
+        { msg }, false)
     return 0
 }
 
@@ -42,6 +41,6 @@ fun infoMessage(context: Context, msg: Text): Int {
 //}
 
 
-fun red(string: String): MutableText = MutableText.of(LiteralTextContent(string)).styled { Style.EMPTY.withColor(Formatting.RED) }
-fun green(string: String): MutableText = MutableText.of(LiteralTextContent(string)).styled { Style.EMPTY.withColor(Formatting.GREEN) }
-fun gray(string: String): MutableText = MutableText.of(LiteralTextContent(string)).styled { Style.EMPTY.withColor(Formatting.GRAY) }
+fun red(string: String): MutableText = Text.literal(string).styled { Style.EMPTY.withColor(Formatting.RED) }
+fun green(string: String): MutableText = Text.literal(string).styled { Style.EMPTY.withColor(Formatting.GREEN) }
+fun gray(string: String): MutableText = Text.literal(string).styled { Style.EMPTY.withColor(Formatting.GRAY) }
