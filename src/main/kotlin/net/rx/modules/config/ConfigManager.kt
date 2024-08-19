@@ -8,6 +8,7 @@ import net.rx.modules.logger
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.pathString
 
 
 /**
@@ -46,7 +47,7 @@ object ConfigManager {
 
     private fun initialize() {
         dirPath = server
-            .runDirectory.toAbsolutePath()
+            .runDirectory
             .resolve("config")
             .resolve("gitmod")
 
